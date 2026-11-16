@@ -21,11 +21,11 @@ A pre-send cost-tier preflight for [DSH](https://github.com/deepseek-ai/dsh) (De
 | 信号 | 命中条件 | 加分 |
 | --- | --- | --- |
 | 长消息 | 去除首尾空白后超过 **500** 字（按 Unicode 码点计） | +1 |
-| 多步指令 | 含 `循环 / 遍历 / 逐个 / 所有 / 批量 / 接着 / 然后 / 之后` 之一 | +1 |
+| 多步指令 | 含 `循环 / 遍历 / 逐个 / 所有 / 批量 / 接着 / 然后 / 之后`，或英文 `for each / iterate / loop over / all tests / batch / one by one / step by step / then / after that` 之一 | +1 |
 | 多文件引用 | 去重后的文件路径数量 **> 3** | +1 |
-| 测试/部署 | 含 `测试 / 验证 / 部署` 之一 | +1 |
+| 测试/部署 | 含 `测试 / 验证 / 部署`，或英文 `test(s) / testing / verify / verification / deploy(ment/ing)` 之一 | +1 |
 
-路径识别接受 Windows 盘符、`./`、`../`、`~/`、绝对路径，以及带扩展名的相对路径；URL、`2026/11/16` 这类斜杠日期和裸 `a/b` 不会计数。同一路径写两次只算一次。
+路径识别接受 Windows 盘符、`./`、`../`、`~/`、绝对路径，以及带扩展名的相对路径；URL、`2026/11/16` 这类斜杠日期和裸 `a/b` 不会计数。同一路径写两次只算一次。行内代码里的路径（`` `src/a.ts` ``）照常计数；整段围栏代码块（```` ``` ```` 包裹）会被忽略，避免把示例脚本里的路径全部计入。英文关键词按词边界匹配，`latest`、`contest` 里的 `test` 不会误命中。
 
 档位切线（分数 0–4）：
 
@@ -77,7 +77,7 @@ dsh --profile web --dump-config
         sensitivity: standard
 ```
 
-非法值有兜底：`sensitivity` 不是三档之一时回落到 `standard`，并在工具结果的 `sensitivityFallback` 里标出；`enabled` 不是布尔值时回落到 `true`。`enabled: false` 会隐藏标签和提示，但 `cost_preflight` 工具仍然可用（它只在你显式调用时执行，不产生噪音）。
+非法值有兜底：配置层（设置卡片或 `cordis.patch.yml` entry）的 `sensitivity` 不是三档之一时回落到 `standard`，并在工具结果的 `sensitivityFallback` 里标出；`enabled` 不是布尔值时回落到 `true`。工具调用的 `sensitivity` 参数走运行时 schema 校验，非法值会直接报 `invalid arguments` 而不是静默回退。`enabled: false` 会隐藏标签和提示，但 `cost_preflight` 工具仍然可用（它只在你显式调用时执行，不产生噪音）。
 
 ## 工具 `cost_preflight`
 
@@ -94,11 +94,12 @@ dsh --profile web --dump-config
 
 已真实验证（DSH `0.1.0-rc.7` 本机运行时）：
 
-- 规则与档位：`node --test` 20 项单测全过，覆盖四条信号、500 字边界、3/4 路径边界、三档灵敏度、非法值兜底、500ms 防抖与重复草稿去重。
+- 规则与档位：`node --test` 28 项单测全过，覆盖四条信号（中英文关键词与词边界）、500 字边界、3/4 路径边界、行内代码与围栏代码块、三档灵敏度、配置非法值兜底并标记、500ms 防抖与重复草稿去重、工具注册与设置实时覆盖。
 - 宿主装载与工具：新建临时 profile 经 `cordis.patch.yml` 装载，真 `dsh --profile cp-verify "<任务>"` 会话中模型实际调用 `cost_preflight`，返回 `tier=medium, score=2`（命中「逐个」「测试」），工具 schema/render 全程通过真实 `ToolRuntime`。
 - 客户端发现与服务：同一临时 web profile 启动后，`window.__DSH_BOOT__` 包含本包条目，`GET /plugins/@liuhange/dsh-cost-preflight/client.js` 返回 200。
 - 真实浏览器行为：在运行的 web UI 中输入高成本任务文本，发送按钮旁出现 🔴高 标签、输入框上方出现红色提示行；在设置 → 插件中打开「成本预检 · Cost Preflight」卡片，把灵敏度切到「宽松」后，同一文本的标签实时变为 🟡中 且提示行消失。
 - 设置命名空间：宿主注册、客户端 `settingsScope.bind({namespace})` 读写同一命名空间，保存失败会显示错误行。
+- 发布包复核（0.1.1）：从 npm registry 干净安装到独立 profile，直接加载 `lib/index.js` 驱动 `ToolRuntime` 真实参数校验与执行；`lib/client.js` 在 mock loader + `react-dom/server` 下注册三个槽位并正确渲染空态/高成本态/设置卡片。
 
 未验证 / 受环境限制：
 

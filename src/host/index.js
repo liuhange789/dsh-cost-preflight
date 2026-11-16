@@ -46,24 +46,20 @@ const TIER_TEXT = Object.freeze({ low: '低 (low)', medium: '中 (medium)', high
  * Compose the invocation-time settings: composition entry first, user section
  * (when a settings provider is mounted) overrides it live.
  * @param {unknown} entry - validated composition entry config.
- * @returns {{ enabled: boolean, sensitivity: string }} resolved settings.
+ * @returns {{ enabled: boolean, sensitivity: string, fallback: boolean }} resolved settings.
  */
 function resolveEntry(entry) {
-  const resolved = normalizeConfig(entry)
-  return { enabled: resolved.enabled, sensitivity: resolved.sensitivity }
+  return normalizeConfig(entry)
 }
 
 export function apply(ctx, config) {
   const entry = resolveEntry(config)
-  /** @type {() => { enabled: boolean, sensitivity: string }} */
+  /** @type {() => { enabled: boolean, sensitivity: string, fallback: boolean }} */
   let source = () => entry
 
   installSettingsSection(ctx, COST_PREFLIGHT_SETTINGS_NAMESPACE, CostPreflightSettings, entry, {
     setSource: current => {
-      source = () => {
-        const resolved = normalizeConfig(current())
-        return { enabled: resolved.enabled, sensitivity: resolved.sensitivity }
-      }
+      source = () => normalizeConfig(current())
     },
     onChange: () => {},
   })
@@ -142,10 +138,13 @@ export function apply(ctx, config) {
     isConcurrencySafe: () => true,
     execute(args) {
       const configured = source()
-      const sensitivity = args.sensitivity === undefined
-        ? configured.sensitivity
-        : normalizeSensitivity(args.sensitivity).sensitivity
-      return Promise.resolve(analyze(args.text, sensitivity))
+      const override = args.sensitivity === undefined ? undefined : normalizeSensitivity(args.sensitivity)
+      const result = analyze(args.text, override === undefined ? configured.sensitivity : override.sensitivity)
+      const fallback = override === undefined ? configured.fallback : override.fallback
+      return Promise.resolve({
+        ...result,
+        sensitivityFallback: result.sensitivityFallback || fallback,
+      })
     },
   }))
 }

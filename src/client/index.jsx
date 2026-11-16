@@ -26,8 +26,8 @@ const NAMESPACE = 'cost-preflight'
 /** Client plugin name shown in diagnostics. */
 export const name = 'cost-preflight-client'
 
-/** Settings transport plus the slot registry are required; the web profile provides all of them. */
-export const inject = ['slots', 'connection', 'remote', 'settingsScope']
+/** Settings transport plus the slot registry are required; the web profile provides both. */
+export const inject = ['slots', 'settingsScope']
 
 const TIER_FACE = Object.freeze({
   low: { emoji: '🟢', label: '低', color: '#16a34a' },

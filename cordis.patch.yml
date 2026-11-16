@@ -1,0 +1,3 @@
+- insert:
+    - id: cost-preflight
+      name: '@liuhange/dsh-cost-preflight'

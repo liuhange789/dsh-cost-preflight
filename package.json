@@ -1,0 +1,74 @@
+{
+  "name": "@liuhange/dsh-cost-preflight",
+  "version": "0.1.0",
+  "description": "Know roughly how expensive your message is before you hit send: a pre-send cost-tier preflight for DSH (低/中/高). 发送前成本预检：按消息长度、多步指令、文件路径、测试/验证/部署关键词给出成本档位预警。",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "cost",
+    "token",
+    "preflight",
+    "成本",
+    "预检",
+    "tier"
+  ],
+  "homepage": "https://github.com/liuhange789/dsh-cost-preflight#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liuhange789/dsh-cost-preflight.git"
+  },
+  "bugs": {
+    "url": "https://github.com/liuhange789/dsh-cost-preflight/issues"
+  },
+  "license": "MIT",
+  "type": "module",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "src/core",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "prepack": "node scripts/build.mjs",
+    "test": "node scripts/build.mjs && node --test test/heuristic.test.js test/debounce.test.js"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-settings": ">=0.1.0-rc.7 <0.2.0",
+    "@deepseek-ai/dsh-tools": ">=0.1.0-rc.7 <0.2.0",
+    "@deepseek-ai/schemastery": ">=3.18.0 <4",
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

@@ -48,12 +48,14 @@ export function createDebouncer(delay, timers = globalThis) {
 
 /**
  * A stable identity for one analysis result: two analyses with the same
- * signature never need to re-render the badge.
- * @param {{ tier: string, score: number, sensitivity: string, pathCount: number, signals: { id: string }[] }} analysis - analysis result.
+ * signature never need to re-render the badge. Signal labels are part of the
+ * signature because they carry the live counts ("长消息 (612 字 > 500)"); using
+ * the ids alone would freeze the tooltip at the first observed count.
+ * @param {{ tier: string, score: number, sensitivity: string, pathCount: number, signals: { id: string, label: string }[] }} analysis - analysis result.
  * @returns {string} signature string.
  */
 export function analysisSignature(analysis) {
-  const signals = analysis.signals.map(signal => signal.id).join('+')
+  const signals = analysis.signals.map(signal => signal.label).join('+')
   return `${analysis.tier}|${analysis.score}|${analysis.sensitivity}|${analysis.pathCount}|${signals}`
 }
 

@@ -86,6 +86,14 @@ test('analysis signature ignores identical re-analysis but changes with the tier
   assert.notEqual(analysisSignature(base), analysisSignature(high))
 })
 
+test('analysis signature tracks live counts carried by signal labels', () => {
+  const shorter = analyze(`${'a'.repeat(600)}`, 'standard')
+  const longer = analyze(`${'a'.repeat(700)}`, 'standard')
+  assert.equal(shorter.tier, longer.tier)
+  assert.equal(shorter.pathCount, longer.pathCount)
+  assert.notEqual(analysisSignature(shorter), analysisSignature(longer))
+})
+
 test('tracker skips a duplicate draft and recomputes on change', () => {
   const tracker = createTierTracker('standard')
   const first = tracker.next('然后 测试')

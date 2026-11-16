@@ -1,6 +1,6 @@
 {
   "name": "@liuhange/dsh-cost-preflight",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Know roughly how expensive your message is before you hit send: a pre-send cost-tier preflight for DSH (低/中/高). 发送前成本预检：按消息长度、多步指令、文件路径、测试/验证/部署关键词给出成本档位预警。",
   "keywords": [
     "dsh",
@@ -42,7 +42,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "prepack": "node scripts/build.mjs",
-    "test": "node scripts/build.mjs && node --test test/heuristic.test.js test/debounce.test.js"
+    "test": "node scripts/build.mjs && node --test test/heuristic.test.js test/debounce.test.js test/host.test.js"
   },
   "dsh": {
     "bundle": {

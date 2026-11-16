@@ -72,6 +72,29 @@ test('URLs, slash dates and bare slash words are not file paths', () => {
   assert.equal(countFilePaths(text), 0)
 })
 
+test('inline code spans still count as file references', () => {
+  const text = '改 `./src/a.ts`、`./src/b.ts`、`./src/c.ts`、`./src/d.ts`'
+  assert.equal(countFilePaths(text), 4)
+})
+
+test('fenced code blocks do not inflate the path count', () => {
+  const text = '看下面\n```\n./a.ts ./b.ts ./c.ts ./d.ts ./e.ts\n```\n改 ./a.ts'
+  assert.equal(countFilePaths(text), 1)
+})
+
+test('English multi-step and test/deploy words are recognized', () => {
+  const result = analyze('Run all the tests in src/foo.test.ts, fix failures, then deploy to production.', 'standard')
+  assert.equal(result.score, 2)
+  assert.equal(result.tier, 'medium')
+  assert.deepEqual(result.signals.map(signal => signal.id), ['multi-step', 'verification'])
+})
+
+test('English word boundaries do not match substrings like latest or contest', () => {
+  const result = analyze('Show me the latest contest results', 'standard')
+  assert.equal(result.score, 0)
+  assert.deepEqual(result.signals, [])
+})
+
 test('verification keywords add one point each-message', () => {
   for (const keyword of ['测试', '验证', '部署']) {
     const result = analyze(`帮我${keyword}一下`, 'standard')
